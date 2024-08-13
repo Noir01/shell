@@ -5,6 +5,7 @@ pub struct Command {
     args: Vec<String>,
     stdin: Option<String>,
     stdout: Option<String>,
+    stderr: Option<String>,
 }
 
 pub struct Shell {
@@ -98,6 +99,15 @@ impl Shell {
                     current_command = None;
                     arguments.clear();
                 }
+                "2>" => {
+                    if let Some(next_token) = token_iter.next() {
+                        if let Some(ref mut command) = current_command {
+                            command.stderr = Some(next_token.clone());
+                        }
+                    } else {
+                        // TODO: Raise error
+                    }
+                }
                 ">" => {
                     if let Some(next_token) = token_iter.next() {
                         if let Some(ref mut command) = current_command {
@@ -123,6 +133,7 @@ impl Shell {
                             args: Vec::new(),
                             stdin: None,
                             stdout: None,
+                            stderr: None,
                         });
                     } else {
                         arguments.push(token.clone());
