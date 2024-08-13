@@ -36,7 +36,13 @@ impl Shell {
             let mut input = String::new();
             io::stdin().read_line(&mut input).unwrap();
 
-            let commands: Vec<Command> = self.parse(input);
+            let commands: Vec<Command> = match self.parse(input) {
+                Ok(commands) => commands,
+                Err(error) => {
+                    eprintln!("{}", error);
+                    continue;
+                }
+            };
 
             for command in commands {
                 if command.name.to_lowercase() == "exit" {
@@ -46,7 +52,7 @@ impl Shell {
         }
     }
 
-    fn parse(&self, input: String) -> Vec<Command> {
+    fn parse(&self, input: String) -> Result<Vec<Command>, String> {
         let mut res: Vec<Command> = Vec::new();
 
         let input = input.trim();
@@ -104,8 +110,9 @@ impl Shell {
                         if let Some(ref mut command) = current_command {
                             command.stderr = Some(next_token.clone());
                         }
-                    } else {
-                        // TODO: Raise error
+                    }
+                    else {
+                        return Err("Expected file name after 2>".to_string());
                     }
                 }
                 ">" => {
@@ -113,8 +120,9 @@ impl Shell {
                         if let Some(ref mut command) = current_command {
                             command.stdout = Some(next_token.clone());
                         }
-                    } else {
-                        // TODO: Raise error
+                    }
+                    else {
+                        return Err("Expected file name after >".to_string());
                     }
                 }
                 "<" => {
@@ -122,8 +130,9 @@ impl Shell {
                         if let Some(ref mut command) = current_command {
                             command.stdin = Some(next_token.clone());
                         }
-                    } else {
-                        // TODO: Raise error
+                    }
+                    else {
+                        return Err("Expected file name after <".to_string());
                     }
                 }
                 _ => {
@@ -135,7 +144,8 @@ impl Shell {
                             stdout: None,
                             stderr: None,
                         });
-                    } else {
+                    }
+                    else {
                         arguments.push(token.clone());
                     }
                 }
@@ -146,8 +156,7 @@ impl Shell {
             res.push(current_command.unwrap());
         }
     
-        // Add return statement
-        res
+        Ok(res)
     }
 
     extern "C" fn handle_interrupt(_sig: libc::c_int) {
