@@ -28,7 +28,7 @@ impl Shell {
     pub fn run(&mut self) {
         loop {
             // Emit PS1
-            print!("$ ");
+            print!("{} ", env::var("PS1").unwrap());
             io::stdout().flush().unwrap();
 
             // Read input
